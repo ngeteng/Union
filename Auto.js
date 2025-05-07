@@ -54,7 +54,7 @@ function rotateRpcProvider() {
 }
 
 // Helpers
-define function delay(ms) {
+function delay(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
 function timelog() {
