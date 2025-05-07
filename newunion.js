@@ -366,7 +366,6 @@ async function main() {
   rl.close();
   process.exit(0);
 }
-// Akhir fungsi main()
 
 main().catch((err) => {
   logger.error(`Main error: ${err.message}`);
