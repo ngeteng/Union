@@ -286,27 +286,6 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
   }
 }
 
-async function main() {
-  header();
-
-  const wallets = [];
-  let index = 1;
-  while (true) {
-    const privateKey = process.env[`PRIVATE_KEY_${index}`];
-    const babylonAddress = process.env[`BABYLON_ADDRESS_${index}`];
-    if (!privateKey) break; 
-    wallets.push({
-      name: `Wallet${index}`,
-      privatekey: privateKey,
-      babylonAddress: babylonAddress || ''
-    });
-    index++;
-  }
-
-  if (wallets.length === 0) {
-    logger.error(`No wallets found in .env. Please provide at least one PRIVATE_KEY_X.`);
-    process.exit(1);
-  }
   async function main() {
   header();
 
