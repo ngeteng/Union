@@ -328,13 +328,7 @@ async function main() {
       continue;
     }
 
-    const maxTransactionInput = await askQuestion(`${colors.cyan}[?] Enter the number of transactions per wallet: ${colors.reset}`);
-    const maxTransaction = parseInt(maxTransactionInput.trim());
-
-    if (isNaN(maxTransaction) || maxTransaction <= 0) {
-      logger.error(`Invalid number. Please enter a positive number.`);
-      continue;
-    }
+    const maxTransaction = 5;
 
     for (const walletInfo of wallets) {
       if (!walletInfo.privatekey) {
