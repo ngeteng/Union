@@ -1,5 +1,3 @@
-process.stdin.pause();
-
 const fs = require('fs');
 const path = require('path');
 const { sendReport } = require('./telegramReporter');
@@ -337,7 +335,7 @@ async function main() {
     }
 
     batchCount++;
-    await delay(60 * 1000); // jeda 1 menit antar batch
+    await delay(10 * 1000); // jeda 1 menit antar batch
   }
 
   logger.success(`Selesai ${maxBatches} batch. Script berhenti.`);
