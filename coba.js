@@ -117,10 +117,6 @@ const rl = readline.createInterface({
   output: process.stdout
 });
 
-function askQuestion(query) {
-  return new Promise(resolve => rl.question(query, resolve));
-}
-
 const explorer = {
   tx: (txHash) => `${baseExplorerUrl}/tx/${txHash}`,
   address: (address) => `${baseExplorerUrl}/address/${address}`,
