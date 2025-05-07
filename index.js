@@ -279,61 +279,56 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     }
   }
 }
+
 async function main() {
   header();
 
-  // 1. Load wallets
+  // Load 1 wallet seperti biasa
   const wallets = [];
-  let index = 1;
-  while (true) {
-    const key = process.env[`PRIVATE_KEY_${index}`];
-    if (!key) break;
-    wallets.push({ name: `Wallet${index}`, privatekey: key, babylonAddress: process.env[`BABYLON_ADDRESS_${index}`] || '' });
-    index++;
-  }
-  if (wallets.length === 0) {
-    logger.error('No wallets found in .env.');
+  const pk = process.env.PRIVATE_KEY_1;
+  if (!pk) {
+    logger.error('No PRIVATE_KEY_1 in .env');
     process.exit(1);
   }
+  wallets.push({ name: 'Wallet1', privatekey: pk, babylonAddress: process.env.BABYLON_ADDRESS_1 || '' });
 
-  // 2. Inisialisasi counter
-  const maxRounds = 3;
-  let roundCount = 0;
+  // === LOGIKA DAILY LIMIT ===
+  const dailyLimit = 10;          // maks 10 tx per 24 jam
+  let dailyCount = 0;             // counter transaksi hari ini
+  let dayStart = Date.now();      // timestamp awal periode 24 jam
 
-  // 3. Loop dengan penghentian otomatis
+  // Tangkap Ctrl+C agar keluar dengan rapi
+  process.on('SIGINT', () => {
+    logger.info('Exit signal received.');
+    rl.close();
+    process.exit(0);
+  });
+
+  // Infinite loop—akan reset tiap 24 jam
   while (true) {
-    if (roundCount >= maxRounds) {
-      logger.info(`⏹️  Reached ${maxRounds} rounds, exiting loop.`);
-      break;
-    }
-    roundCount++;
+    // 1) Jika sudah di atas limit, tunggu sampai 24 jam penuh:
+    if (dailyCount >= dailyLimit) {
+      const now = Date.now();
+      const elapsed = now - dayStart;                     // ms yang udah berjalan
+      const waitFor = Math.max(0, 24*60*60*1000 - elapsed);
+      const minutes = Math.ceil(waitFor/1000/60);
+      logger.info(`Reached ${dailyLimit} tx. Sleeping for ~${minutes} minutes until next 24h window.`);
+      await delay(waitFor);
 
-    // 4. Body loop (sama seperti sebelumnya)
-    const choice = 3;
-    const perWalletTx = 2;
-    for (const walletInfo of wallets) {
-      // … validasi wallet …
-      if (choice === 1) {
-        await sendFromWallet(walletInfo, perWalletTx, 'holesky');
-      } else if (choice === 2) {
-        await sendFromWallet(walletInfo, perWalletTx, 'babylon');
-      } else {
-        const dests = ['holesky','babylon'].filter(d => d !== 'babylon' || walletInfo.babylonAddress);
-        for (let i = 0; i < perWalletTx; i++) {
-          const d = dests[Math.floor(Math.random()*dests.length)];
-          await sendFromWallet(walletInfo, 1, d);
-          if (i < perWalletTx - 1) await delay(1000);
-        }
-      }
+      // reset periode
+      dayStart = Date.now();
+      dailyCount = 0;
     }
 
-    // 5. Jeda opsional supaya loop tidak terlalu cepat
-    await delay(500);
+    // 2) Lakukan transaksi sekali untuk wallet tunggal
+    const walletInfo = wallets[0];
+    await sendFromWallet(walletInfo, 1, 'holesky');     // ganti destinasi jika perlu
+    dailyCount++;
+    logger.info(`${dailyCount}/${dailyLimit} transactions done in this 24h window.`);
+
+    // 3) (opsional) jeda antar transaksi—jika mau trans langsung berurutan, bisa skip ini
+    await delay(30000);  // misal 1 detik
   }
-
-  // 6. Setelah keluar loop, bersih-bersih dan exit
-  rl.close();
-  process.exit(0);
 }
 
 main().catch(err => {
