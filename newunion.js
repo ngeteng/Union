@@ -247,7 +247,17 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     const oneDayNs = 86_400_000_000_000n;
     const timeoutTimestamp = (now + oneDayNs).toString();
     const timestampNow = Math.floor(Date.now() / 1000);
-    const salt = ethers.keccak256(ethers.solidityPacked(['address', 'uint256'], [wallet.address, timestampNow]));
+    const { utils } = require('ethers');
+// …
+    const salt = utils.keccak256(
+      
+      utils.solidityPack(
+        
+         ['address', 'uint256'],
+         [wallet.address, timestampNow]
+  )
+);
+
     const instruction = {
       version: 0,
       opcode: 2,
