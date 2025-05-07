@@ -112,11 +112,6 @@ function rotateRpcProvider() {
   return provider();
 }
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
-
 const explorer = {
   tx: (txHash) => `${baseExplorerUrl}/tx/${txHash}`,
   address: (address) => `${baseExplorerUrl}/address/${address}`,
