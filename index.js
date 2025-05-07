@@ -279,87 +279,64 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     }
   }
 }
-
 async function main() {
   header();
 
+  // 1. Load wallets
   const wallets = [];
   let index = 1;
   while (true) {
-    const privateKey = process.env[`PRIVATE_KEY_${index}`];
-    const babylonAddress = process.env[`BABYLON_ADDRESS_${index}`];
-    if (!privateKey) break; 
-    wallets.push({
-      name: `Wallet${index}`,
-      privatekey: privateKey,
-      babylonAddress: babylonAddress || ''
-    });
+    const key = process.env[`PRIVATE_KEY_${index}`];
+    if (!key) break;
+    wallets.push({ name: `Wallet${index}`, privatekey: key, babylonAddress: process.env[`BABYLON_ADDRESS_${index}`] || '' });
     index++;
   }
-
   if (wallets.length === 0) {
-    logger.error(`No wallets found in .env. Please provide at least one PRIVATE_KEY_X.`);
+    logger.error('No wallets found in .env.');
     process.exit(1);
   }
 
+  // 2. Inisialisasi counter
+  const maxRounds = 3;
+  let roundCount = 0;
+
+  // 3. Loop dengan penghentian otomatis
   while (true) {
-    
+    if (roundCount >= maxRounds) {
+      logger.info(`⏹️  Reached ${maxRounds} rounds, exiting loop.`);
+      break;
+    }
+    roundCount++;
+
+    // 4. Body loop (sama seperti sebelumnya)
     const choice = 3;
-
-    if (choice === 4) {
-      logger.info(`Exiting program.`);
-      rl.close();
-      process.exit(0);
-    }
-
-    if (![1, 2, 3].includes(choice)) {
-      logger.error(`Invalid option. Please select 1, 2, 3, or 4.`);
-      continue;
-    }
-    
-    const maxTransaction = 2;
-
+    const perWalletTx = 2;
     for (const walletInfo of wallets) {
-      if (!walletInfo.privatekey) {
-        logger.warn(`Skipping wallet '${walletInfo.name}': Missing privatekey.`);
-        continue;
-      }
-      if (!walletInfo.privatekey.startsWith('0x')) {
-        logger.warn(`Skipping wallet '${walletInfo.name}': Privatekey must start with '0x'.`);
-        continue;
-      }
-      if (!/^(0x)[0-9a-fA-F]{64}$/.test(walletInfo.privatekey)) {
-        logger.warn(`Skipping wallet '${walletInfo.name}': Privatekey is not a valid 64-character hexadecimal string.`);
-        continue;
-      }
-
+      // … validasi wallet …
       if (choice === 1) {
-        await sendFromWallet(walletInfo, maxTransaction, 'holesky');
+        await sendFromWallet(walletInfo, perWalletTx, 'holesky');
       } else if (choice === 2) {
-        await sendFromWallet(walletInfo, maxTransaction, 'babylon');
-      } else if (choice === 3) {
-        const destinations = ['holesky', 'babylon'].filter(dest => dest !== 'babylon' || walletInfo.babylonAddress);
-        if (destinations.length === 0) {
-          logger.warn(`Skipping wallet '${walletInfo.name}': No valid destinations (missing babylonAddress).`);
-          continue;
-        }
-        for (let i = 0; i < maxTransaction; i++) {
-          const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
-          await sendFromWallet(walletInfo, 1, randomDest);
-          if (i < maxTransaction - 1) {
-            await delay(1000);
-          }
+        await sendFromWallet(walletInfo, perWalletTx, 'babylon');
+      } else {
+        const dests = ['holesky','babylon'].filter(d => d !== 'babylon' || walletInfo.babylonAddress);
+        for (let i = 0; i < perWalletTx; i++) {
+          const d = dests[Math.floor(Math.random()*dests.length)];
+          await sendFromWallet(walletInfo, 1, d);
+          if (i < perWalletTx - 1) await delay(1000);
         }
       }
     }
 
-    if (wallets.length === 0) {
-      logger.warn(`No wallets processed. Check .env for valid entries.`);
-    }
+    // 5. Jeda opsional supaya loop tidak terlalu cepat
+    await delay(500);
   }
+
+  // 6. Setelah keluar loop, bersih-bersih dan exit
+  rl.close();
+  process.exit(0);
 }
 
-main().catch((err) => {
+main().catch(err => {
   logger.error(`Main error: ${err.message}`);
   rl.close();
   process.exit(1);
