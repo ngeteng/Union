@@ -303,7 +303,7 @@ async function main() {
 
   // Batas berapa kali batch transaksi dijalankan
   const maxBatches = 1;
-  let batchCount = 1;
+  let batchCount = 0;
 
   // Loop akan jalan sampai batchCount === maxBatches
   while (batchCount < maxBatches) {
