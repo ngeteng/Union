@@ -43,7 +43,12 @@ const baseExplorerUrl   = process.env.EXPLORER_URL;
 const unionUrl          = process.env.UNION_URL;
 
 // RPC providers rotation
-const rpcProviders = process.env.RPC_URLS.split(',').map(url => new ethers.providers.JsonRpcProvider(url));
+const rpcUrls = process.env.RPC_URLS ? process.env.RPC_URLS.split(',') : [];
+if (rpcUrls.length === 0) {
+  logger.error('RPC_URLS is not defined in .env or empty. Please set RPC_URLS.');
+  process.exit(1);
+}
+const rpcProviders = rpcUrls.map(url => new ethers.providers.JsonRpcProvider(url));
 let currentRpcProviderIndex = 0;
 function provider() {
   return rpcProviders[currentRpcProviderIndex];
