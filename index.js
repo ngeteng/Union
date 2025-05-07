@@ -98,7 +98,7 @@ const graphqlEndpoint = 'https://graphql.union.build/v1/graphql';
 const baseExplorerUrl = 'https://sepolia.etherscan.io';
 const unionUrl = 'https://app.union.build/explorer';
 
-const rpcProviders = [new JsonRpcProvider('https://eth-sepolia.public.blastapi.io')];
+const rpcProviders = [new JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/n8IrzxdL7dh_zcA_8MoTYcqrCLPMQAUv')];
 let currentRpcProviderIndex = 0;
 
 function provider() {
@@ -302,8 +302,7 @@ async function main() {
     console.log(`2. Sepolia - Babylon`);
     console.log(`3. Random (Holesky and Babylon)`);
     console.log(`4. Exit`);
-    const menuChoice = await askQuestion(`${colors.cyan}[?] Select menu option (1-4): ${colors.reset}`);
-    const choice = parseInt(menuChoice.trim());
+    const choice = 3;
 
     if (choice === 4) {
       logger.info(`Exiting program.`);
@@ -315,14 +314,8 @@ async function main() {
       logger.error(`Invalid option. Please select 1, 2, 3, or 4.`);
       continue;
     }
-
-    const maxTransactionInput = await askQuestion(`${colors.cyan}[?] Enter the number of transactions per wallet: ${colors.reset}`);
-    const maxTransaction = parseInt(maxTransactionInput.trim());
-
-    if (isNaN(maxTransaction) || maxTransaction <= 0) {
-      logger.error(`Invalid number. Please enter a positive number.`);
-      continue;
-    }
+    
+    const maxTransaction = 2;
 
     for (const walletInfo of wallets) {
       if (!walletInfo.privatekey) {
