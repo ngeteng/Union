@@ -303,11 +303,7 @@ async function main() {
   }
 
   while (true) {
-    console.log(`${colors.cyan}Menu:${colors.reset}`);
-    console.log(`1. Sepolia - Holesky`);
-    console.log(`2. Sepolia - Babylon`);
-    console.log(`3. Random (Holesky and Babylon)`);
-    console.log(`4. Exit`);
+    
     const choice = 3;
 
     if (choice === 4) {
