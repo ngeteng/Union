@@ -255,6 +255,7 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     try {
       const tx = await contract.send(channelId, timeoutHeight, timeoutTimestamp, salt, instruction);
       await tx.wait(1);
+      await sendReport(`✅ Transaksi Confirmed!\nHash: ${tx.hash}\nWallet: ${walletInfo.name || wallet.address}`);
       logger.success(`${timelog()} | ${walletInfo.name || 'Unnamed'} | Transaction Confirmed: ${explorer.tx(tx.hash)}`);
       const txHash = tx.hash.startsWith('0x') ? tx.hash : `0x${tx.hash}`;
       const packetHash = await pollPacketHash(txHash);
