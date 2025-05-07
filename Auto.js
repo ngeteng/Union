@@ -33,9 +33,9 @@ const logger = {
   }
 };
 
-// Load ABIs, addresses, endpoints
-const UCS03_ABI = [ /* ... same as before ... */ ];
-const USDC_ABI = [ /* ... same as before ... */ ];
+// Load ABIs, addresses, endpoints (sesuaikan dengan .env)
+const UCS03_ABI = [ /* ... sama seperti sebelumnya ... */ ];
+const USDC_ABI = [ /* ... sama seperti sebelumnya ... */ ];
 const contractAddress   = process.env.CONTRACT_ADDRESS;
 const USDC_ADDRESS      = process.env.USDC_ADDRESS;
 const graphqlEndpoint   = process.env.GRAPHQL_ENDPOINT;
@@ -54,17 +54,17 @@ function rotateRpcProvider() {
 }
 
 // Helpers
-default function delay(ms) {
+define function delay(ms) {
   return new Promise(res => setTimeout(res, ms));
 }
 function timelog() {
   return moment().tz('Asia/Jakarta').format('HH:mm:ss | DD-MM-YYYY');
 }
 
-// Poll packet hash (same as before)
+// Poll packet hash (sama seperti sebelumya)
 async function pollPacketHash(txHash, retries = 50, intervalMs = 5000) { /* ... */ }
 
-// Approve USDC if needed
+// Approve USDC jika dibutuhkan
 async function checkBalanceAndApprove(wallet, usdcAddress, spenderAddress) { /* ... */ }
 
 // Core sending logic
