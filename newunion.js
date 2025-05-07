@@ -307,62 +307,66 @@ async function main() {
     logger.error(`No wallets found in .env. Please provide at least one PRIVATE_KEY_X.`);
     process.exit(1);
   }
-
-async function main() {
+  async function main() {
   header();
 
-  // Load semua wallet dari .env
+  // 1) Load wallets dari .env
   const wallets = [];
-  let index = 1;
+  let idx = 1;
   while (true) {
-    const privateKey = process.env[`PRIVATE_KEY_${index}`];
-    const babylonAddress = process.env[`BABYLON_ADDRESS_${index}`];
-    if (!privateKey) break; 
+    const pk = process.env[`PRIVATE_KEY_${idx}`];
+    if (!pk) break;
     wallets.push({
-      name: `Wallet${index}`,
-      privatekey: privateKey,
-      babylonAddress: babylonAddress || ''
+      name: `Wallet${idx}`,
+      privatekey: pk,
+      babylonAddress: process.env[`BABYLON_ADDRESS_${idx}`] || ''
     });
-    index++;
+    idx++;
   }
-
   if (wallets.length === 0) {
-    logger.error(`No wallets found in .env. Please provide at least one PRIVATE_KEY_X.`);
+    logger.error('No wallets found in .env. Please set at least PRIVATE_KEY_1');
     process.exit(1);
   }
 
-  // Langsung jalankan choice = 3 (Random)
-  const maxTransaction = 5;  // Ubah sesuai jumlah transaksi yang diinginkan
+  // === Mulai otomatis opsi 3 (Random) dengan maxTransaction statis ===
+  const maxTransaction = 5;  // Ubah angka ini sesuai kebutuhan
 
   for (const walletInfo of wallets) {
-    // Validasi private key
-    if (!walletInfo.privatekey.startsWith('0x') || !/^(0x)[0-9a-fA-F]{64}$/.test(walletInfo.privatekey)) {
-      logger.warn(`Skipping ${walletInfo.name}: Privatekey invalid.`);
+    // Validasi format private key
+    if (
+      !walletInfo.privatekey.startsWith('0x') ||
+      !/^(0x)[0-9a-fA-F]{64}$/.test(walletInfo.privatekey)
+    ) {
+      logger.warn(`Skipping ${walletInfo.name}: invalid private key`);
       continue;
     }
 
-    // Siapkan destinasi acak
-    const destinations = ['holesky', 'babylon']
-      .filter(dest => dest !== 'babylon' || walletInfo.babylonAddress);
+    // Siapkan daftar tujuan: selalu 'holesky', dan 'babylon' kalau ada alamatnya
+    const destinations = ['holesky', 'babylon'].filter(
+      (d) => d !== 'babylon' || walletInfo.babylonAddress
+    );
     if (destinations.length === 0) {
-      logger.warn(`Skipping ${walletInfo.name}: No valid destinations (missing babylonAddress).`);
+      logger.warn(`Skipping ${walletInfo.name}: no valid destinations`);
       continue;
     }
 
-    // Kirim transaksi secara acak sebanyak maxTransaction
+    // Kirim acak sebanyak maxTransaction
     for (let i = 0; i < maxTransaction; i++) {
-      const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
+      const randomDest = destinations[
+        Math.floor(Math.random() * destinations.length)
+      ];
       await sendFromWallet(walletInfo, 1, randomDest);
       if (i < maxTransaction - 1) {
-        await delay(1000);  // jeda 1 detik antar transaksi
+        await delay(1000);  // jeda 1 detik
       }
     }
   }
 
-  // Setelah selesai langsung exit
+  // Setelah selesai, tutup readline dan keluar
   rl.close();
   process.exit(0);
 }
+// Akhir fungsi main()
 
 main().catch((err) => {
   logger.error(`Main error: ${err.message}`);
