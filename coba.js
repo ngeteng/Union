@@ -98,12 +98,8 @@ const graphqlEndpoint = 'https://graphql.union.build/v1/graphql';
 const baseExplorerUrl = 'https://sepolia.etherscan.io';
 const unionUrl = 'https://app.union.build/explorer';
 
-const { Agent } = require('http');
-const { ethers } = require('ethers');
-
 // Buat HTTP Agent tanpa keep-alive
 const noKeepAliveAgent = new Agent({ keepAlive: false });
-
 // Ganti inisialisasi rpcProviders-mu dengan ini:
 const rpcProviders = [
   new ethers.providers.JsonRpcProvider({
