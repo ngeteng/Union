@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { sendReport } = require('./telegramReporter');
 const { ethers } = require('ethers');
+const { Agent } = require('http');
 const axios = require('axios');
 const moment = require('moment-timezone');
 const readline = require('readline');
