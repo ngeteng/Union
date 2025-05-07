@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { sendReport } = require('./telegramReporter');
 const path = require('path');
 const { ethers, JsonRpcProvider } = require('ethers');
 const axios = require('axios');
