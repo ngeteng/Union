@@ -331,8 +331,4 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  logger.error(`Main error: ${err.message}`);
-  rl.close();
-  process.exit(1);
-});
+main();
