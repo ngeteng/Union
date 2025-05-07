@@ -99,7 +99,7 @@ const baseExplorerUrl = 'https://sepolia.etherscan.io';
 const unionUrl = 'https://app.union.build/explorer';
 
 const rpcProviders = [
-  new ethers.providers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/n8IrzxdL7dh_zcA_8MoTYcqrCLPMQAUv')
+  new ethers.providers.JsonRpcProvider('YOUR RPC')
 ];
 let currentRpcProviderIndex = 0;
 
