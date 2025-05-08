@@ -1,4 +1,4 @@
-const fs = require('fs');
+mconst fs = require('fs');
 const path = require('path');
 const { sendReport } = require('./telegramReporter');
 const { ethers } = require('ethers');
@@ -99,7 +99,7 @@ const baseExplorerUrl = 'https://sepolia.etherscan.io';
 const unionUrl = 'https://app.union.build/explorer';
 
 const rpcProviders = [
-  new ethers.providers.JsonRpcProvider('Use Your Brain')
+  new ethers.providers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/n8IrzxdL7dh_zcA_8MoTYcqrCLPMQAUv')
 ];
 let currentRpcProviderIndex = 0;
 
