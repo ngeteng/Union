@@ -1,4 +1,4 @@
-mconst fs = require('fs');
+const fs = require('fs');
 const path = require('path');
 const { sendReport } = require('./telegramReporter');
 const { ethers } = require('ethers');
