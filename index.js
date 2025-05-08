@@ -310,7 +310,7 @@ async function main() {
     if (dailyCount >= dailyLimit) {
       const now = Date.now();
       const elapsed = now - dayStart;                     // ms yang udah berjalan
-      const waitFor = Math.max(0, 24*60*60*1000 - elapsed);
+      const waitFor = Math.max(0, 12*60*60*1000 - elapsed);
       const minutes = Math.ceil(waitFor/1000/60);
       logger.info(`Reached ${dailyLimit} tx. Sleeping for ~${minutes} minutes until next 24h window.`);
       await delay(waitFor);
