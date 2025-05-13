@@ -322,7 +322,10 @@ async function main() {
 
     // 2) Lakukan transaksi sekali untuk wallet tunggal
     const walletInfo = wallets[0];
-    await sendFromWallet(walletInfo, 1, 'holesky');     // ganti destinasi jika perlu
+    const destinations = ['babylon', 'holesky'];
+    const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
+    await sendFromWallet(walletInfo, 1, randomDest);
+    logger.info(`Pilih random destination: ${randomDest}`);
     dailyCount++;
     logger.info(`${dailyCount}/${dailyLimit} transactions done in this 24h window.`);
 
