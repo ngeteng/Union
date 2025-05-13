@@ -99,7 +99,7 @@ const baseExplorerUrl = 'https://sepolia.etherscan.io';
 const unionUrl = 'https://app.union.build/explorer';
 
 const rpcProviders = [
-  new ethers.providers.JsonRpcProvider('https://eth-sepolia.g.alchemy.com/v2/')
+  new ethers.providers.JsonRpcProvider(process.env.RPC_URL_PRIV)
 ];
 let currentRpcProviderIndex = 0;
 
@@ -310,7 +310,7 @@ async function main() {
     if (dailyCount >= dailyLimit) {
       const now = Date.now();
       const elapsed = now - dayStart;                     // ms yang udah berjalan
-      const waitFor = Math.max(0, 12*60*60*1000 - elapsed);
+      const waitFor = Math.max(0, 8*60*60*1000 - elapsed);
       const minutes = Math.ceil(waitFor/1000/60);
       logger.info(`Reached ${dailyLimit} tx. Sleeping for ~${minutes} minutes until next 24h window.`);
       await delay(waitFor);
