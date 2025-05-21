@@ -273,7 +273,7 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
       const tx = await contract.send(channelId, timeoutHeight, timeoutTimestamp, salt, instruction);
       const receipt = await tx.wait(1);
       const usdcIface = new ethers.utils.Interface(USDC_ABI);
-      const transferLog = receipt.logs
+      const transferEvt = receipt.logs
       .map(l => {
         try { return usdcIface.parseLog(l); }
         catch { return null; }
@@ -284,15 +284,10 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
       if (transferEvt) {
         amount = ethers.utils.formatUnits(transferEvt.args.value, 6);
       }
-      bufferReport(`✅ Sent *${amount} USDC* → *${destination}*`);
-      logger.success(`${timelog()} | Sent ${amount} USDC to ${destination}`);
+      bufferReport(`✅ Sent *${amount} USDC* → *${destinationName}*`);
+      logger.success(`${timelog()} | Sent ${amount} USDC to ${destinationName}`);
       
-      const txHash = tx.hash.startsWith('0x') ? tx.hash : `0x${tx.hash}`;
-      const packetHash = await pollPacketHash(txHash);
-      if (packetHash) {
-        logger.success(`${timelog()} | ${walletInfo.name || 'Unnamed'} | Packet Submitted: ${union.tx(packetHash)}`);
-      }
-      console.log('');
+      
     } catch (err) {
       logger.error(`Failed for ${wallet.address}: ${err.message}`);
       console.log('');
@@ -301,8 +296,8 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     if (i < maxTransaction) {
       await delay(1000);
     }
-  await flushReport();
   }
+  await flushReport();
 }
 
 async function main() {
