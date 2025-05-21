@@ -34,6 +34,17 @@ const logger = {
   }
 };
 
+let reportBuffer = [];
+function bufferReport(text) {
+  reportBuffer.push(text);
+}
+
+async function flushReport() {
+  if (reportBuffer.length === 0) return;
+  await sendReport(reportBuffer.join("\n"));
+  reportBuffer = [];
+}
+
 const UCS03_ABI = [
   {
     inputs: [
@@ -260,9 +271,22 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
 
     try {
       const tx = await contract.send(channelId, timeoutHeight, timeoutTimestamp, salt, instruction);
-      await tx.wait(1);
-      await sendReport(`✅ Transaksi Confirmed! Report Union Bot\nHash: ${tx.hash}\nWallet: ${walletInfo.name || wallet.address}`);
-      logger.success(`${timelog()} | ${walletInfo.name || 'Unnamed'} | Transaction Confirmed: ${explorer.tx(tx.hash)}`);
+      const receipt = await tx.wait(1);
+      const usdcIface = new ethers.utils.Interface(USDC_ABI);
+      const transferLog = receipt.logs
+      .map(l => {
+        try { return usdcIface.parseLog(l); }
+        catch { return null; }
+      })
+      .find(evt => evt && evt.name === 'Transfer');
+
+      let amount = 'N/A';
+      if (transferEvt) {
+        amount = ethers.utils.formatUnits(transferEvt.args.value, 6);
+      }
+      bufferReport(`✅ Sent *${amount} USDC* → *${destination}*`);
+      logger.success(`${timelog()} | Sent ${amount} USDC to ${destination}`);
+      
       const txHash = tx.hash.startsWith('0x') ? tx.hash : `0x${tx.hash}`;
       const packetHash = await pollPacketHash(txHash);
       if (packetHash) {
@@ -277,60 +301,63 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     if (i < maxTransaction) {
       await delay(1000);
     }
+  await flushReport();
   }
 }
 
 async function main() {
   header();
 
-  // Load 1 wallet seperti biasa
+  // — Inisialisasi wallet
   const wallets = [];
   const pk = process.env.PRIVATE_KEY_1;
   if (!pk) {
     logger.error('No PRIVATE_KEY_1 in .env');
     process.exit(1);
   }
-  wallets.push({ name: 'Wallet1', privatekey: pk, babylonAddress: process.env.BABYLON_ADDRESS_1 || '' });
+  wallets.push({
+    name: 'Wallet1',
+    privatekey: pk,
+    babylonAddress: process.env.BABYLON_ADDRESS_1 || ''
+  });
 
-  // === LOGIKA DAILY LIMIT ===
-  const dailyLimit = 10;          // maks 10 tx per 24 jam
-  let dailyCount = 0;             // counter transaksi hari ini
-  let dayStart = Date.now();      // timestamp awal periode 24 jam
+  // — Daily limit config
+  const dailyLimit = 10;     // max 10 tx per 24 jam
+  let dailyCount = 0;        // counter
+  let dayStart = Date.now(); // awal periode
 
-  // Tangkap Ctrl+C agar keluar dengan rapi
+  // — Tangani Ctrl+C
   process.on('SIGINT', () => {
     logger.info('Exit signal received.');
     rl.close();
     process.exit(0);
   });
 
-  // Infinite loop—akan reset tiap 24 jam
+  // — Loop utama
   while (true) {
-    // 1) Jika sudah di atas limit, tunggu sampai 24 jam penuh:
+    // 1) Jika sudah cap dailyLimit, flush & tunggu sampai periode baru
     if (dailyCount >= dailyLimit) {
-      const now = Date.now();
-      const elapsed = now - dayStart;                     // ms yang udah berjalan
-      const waitFor = Math.max(0, 8*60*60*1000 - elapsed);
-      const minutes = Math.ceil(waitFor/1000/60);
-      logger.info(`Reached ${dailyLimit} tx. Sleeping for ~${minutes} minutes until next 24h window.`);
+      await flushReport();
+      const now     = Date.now();
+      const elapsed = now - dayStart;
+      const waitFor = Math.max(0, 24 * 60 * 60 * 1000 - elapsed);
+      logger.info(
+        `Reached ${dailyLimit} tx. Sleeping for ~${Math.ceil(waitFor / 1000 / 60)} minutes.`
+      );
       await delay(waitFor);
-
-      // reset periode
-      dayStart = Date.now();
+      dayStart   = Date.now();
       dailyCount = 0;
     }
 
-    // 2) Lakukan transaksi sekali untuk wallet tunggal
-    const walletInfo = wallets[0];
+    // 2) Kirim batch 1 tx (atau ganti param kedua untuk batch >1)
     const destinations = ['babylon', 'holesky'];
-    const randomDest = destinations[Math.floor(Math.random() * destinations.length)];
-    await sendFromWallet(walletInfo, 1, randomDest);
-    logger.info(`Pilih random destination: ${randomDest}`);
+    const randomDest   = destinations[Math.floor(Math.random() * destinations.length)];
+    await sendFromWallet(wallets[0], 1, randomDest);
     dailyCount++;
     logger.info(`${dailyCount}/${dailyLimit} transactions done in this 24h window.`);
 
-    // 3) (opsional) jeda antar transaksi—jika mau trans langsung berurutan, bisa skip ini
-    await delay(30000);  // misal 1 detik
+    // 3) Jeda antar panggilan
+    await delay(30_000); // 30 detik
   }
 }
 
