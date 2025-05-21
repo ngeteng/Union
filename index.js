@@ -40,8 +40,12 @@ function bufferReport(text) {
 }
 
 async function flushReport() {
-  if (reportBuffer.length === 0) return;
-  await sendReport(reportBuffer.join("\n"));
+  if (!reportBuffer.length) return;
+  try {
+    await sendReport(reportBuffer.join("\n"));
+  } catch (err) {
+    logger.error(`Telegram report failed: ${err.message}`);
+  }
   reportBuffer = [];
 }
 
@@ -294,7 +298,7 @@ async function sendFromWallet(walletInfo, maxTransaction, destination) {
     }
 
     if (i < maxTransaction) {
-      await delay(1000);
+      await delay(7000);
     }
   }
   await flushReport();
@@ -320,7 +324,7 @@ async function main() {
   //    ganti `1` dan `randomDest` sesuai kebutuhan
   const destinations = ['babylon', 'holesky'];
   const randomDest   = destinations[Math.floor(Math.random() * destinations.length)];
-  await sendFromWallet(wallets[0], 1, randomDest);
+  await sendFromWallet(wallets[0], 5, randomDest);
 
   // — setelah ini proses selesai; crontab yang akan menjalankan ulang
   process.exit(0);
