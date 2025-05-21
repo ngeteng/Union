@@ -316,44 +316,17 @@ async function main() {
     babylonAddress: process.env.BABYLON_ADDRESS_1 || ''
   });
 
-  // — Daily limit config
-  const dailyLimit = 10;     // max 10 tx per 24 jam
-  let dailyCount = 0;        // counter
-  let dayStart = Date.now(); // awal periode
+  // — Kirim batch transaksi sekali saja
+  //    ganti `1` dan `randomDest` sesuai kebutuhan
+  const destinations = ['babylon', 'holesky'];
+  const randomDest   = destinations[Math.floor(Math.random() * destinations.length)];
+  await sendFromWallet(wallets[0], 1, randomDest);
 
-  // — Tangani Ctrl+C
-  process.on('SIGINT', () => {
-    logger.info('Exit signal received.');
-    rl.close();
-    process.exit(0);
-  });
-
-  // — Loop utama
-  while (true) {
-    // 1) Jika sudah cap dailyLimit, flush & tunggu sampai periode baru
-    if (dailyCount >= dailyLimit) {
-      await flushReport();
-      const now     = Date.now();
-      const elapsed = now - dayStart;
-      const waitFor = Math.max(0, 24 * 60 * 60 * 1000 - elapsed);
-      logger.info(
-        `Reached ${dailyLimit} tx. Sleeping for ~${Math.ceil(waitFor / 1000 / 60)} minutes.`
-      );
-      await delay(waitFor);
-      dayStart   = Date.now();
-      dailyCount = 0;
-    }
-
-    // 2) Kirim batch 1 tx (atau ganti param kedua untuk batch >1)
-    const destinations = ['babylon', 'holesky'];
-    const randomDest   = destinations[Math.floor(Math.random() * destinations.length)];
-    await sendFromWallet(wallets[0], 1, randomDest);
-    dailyCount++;
-    logger.info(`${dailyCount}/${dailyLimit} transactions done in this 24h window.`);
-
-    // 3) Jeda antar panggilan
-    await delay(30_000); // 30 detik
-  }
+  // — setelah ini proses selesai; crontab yang akan menjalankan ulang
+  process.exit(0);
 }
 
-main();
+main().catch(err => {
+  logger.error(`Fatal error: ${err.message}`);
+  process.exit(1);
+});
